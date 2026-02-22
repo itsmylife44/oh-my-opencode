@@ -12,10 +12,12 @@ import {
   loadProjectSkills,
   loadOpencodeGlobalSkills,
   loadOpencodeProjectSkills,
+  loadAgentsGlobalSkills,
   discoverUserClaudeSkills,
   discoverProjectClaudeSkills,
   discoverOpencodeGlobalSkills,
   discoverOpencodeProjectSkills,
+  discoverAgentsGlobalSkills,
 } from "../features/opencode-skill-loader";
 import {
   loadUserAgents,
@@ -126,18 +128,20 @@ export function createConfigHandler(deps: ConfigHandlerDeps) {
       discoveredProjectSkills,
       discoveredOpencodeGlobalSkills,
       discoveredOpencodeProjectSkills,
+      discoveredAgentsGlobalSkills,
     ] = await Promise.all([
       includeClaudeSkillsForAwareness ? discoverUserClaudeSkills() : Promise.resolve([]),
       includeClaudeSkillsForAwareness ? discoverProjectClaudeSkills() : Promise.resolve([]),
       discoverOpencodeGlobalSkills(),
       discoverOpencodeProjectSkills(),
+      discoverAgentsGlobalSkills(),
     ]);
-
     const allDiscoveredSkills = [
       ...discoveredOpencodeProjectSkills,
       ...discoveredProjectSkills,
       ...discoveredOpencodeGlobalSkills,
       ...discoveredUserSkills,
+      ...discoveredAgentsGlobalSkills,
     ];
 
     const builtinAgents = await createBuiltinAgents(
@@ -400,6 +404,7 @@ export function createConfigHandler(deps: ConfigHandlerDeps) {
       projectSkills,
       opencodeGlobalSkills,
       opencodeProjectSkills,
+      agentsGlobalSkills,
     ] = await Promise.all([
       includeClaudeCommands ? loadUserCommands() : Promise.resolve({}),
       includeClaudeCommands ? loadProjectCommands() : Promise.resolve({}),
@@ -409,10 +414,11 @@ export function createConfigHandler(deps: ConfigHandlerDeps) {
       includeClaudeSkills ? loadProjectSkills() : Promise.resolve({}),
       loadOpencodeGlobalSkills(),
       loadOpencodeProjectSkills(),
+      loadAgentsGlobalSkills(),
     ]);
-
     config.command = {
       ...builtinCommands,
+      ...agentsGlobalSkills,
       ...userCommands,
       ...userSkills,
       ...opencodeGlobalCommands,

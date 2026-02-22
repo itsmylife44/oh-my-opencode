@@ -10,12 +10,13 @@ import { sanitizeModelField } from "../../shared/model-sanitizer"
 import { deepMerge } from "../../shared/deep-merge"
 
 const SCOPE_PRIORITY: Record<SkillScope, number> = {
-  builtin: 1,
-  config: 2,
-  user: 3,
-  opencode: 4,
-  project: 5,
-  "opencode-project": 6,
+	builtin: 1,
+	config: 2,
+	agents: 3,
+	user: 4,
+	opencode: 5,
+	project: 6,
+	"opencode-project": 7,
 }
 
 function builtinToLoaded(builtin: BuiltinSkill): LoadedSkill {
@@ -191,7 +192,8 @@ export function mergeSkills(
   userOpencodeSkills: LoadedSkill[],
   projectClaudeSkills: LoadedSkill[],
   projectOpencodeSkills: LoadedSkill[],
-  options: MergeSkillsOptions = {}
+  options: MergeSkillsOptions = {},
+  agentsSkills: LoadedSkill[] = []
 ): LoadedSkill[] {
   const skillMap = new Map<string, LoadedSkill>()
 
@@ -220,6 +222,7 @@ export function mergeSkills(
   }
 
   const fileSystemSkills = [
+    ...agentsSkills,
     ...userClaudeSkills,
     ...userOpencodeSkills,
     ...projectClaudeSkills,

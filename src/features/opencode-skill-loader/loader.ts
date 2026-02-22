@@ -1,5 +1,6 @@
 import { promises as fs } from "fs"
 import { join, basename } from "path"
+import { homedir } from "os"
 import yaml from "js-yaml"
 import { parseFrontmatter } from "../../shared/frontmatter"
 import { sanitizeModelField } from "../../shared/model-sanitizer"
@@ -199,39 +200,45 @@ export async function loadOpencodeProjectSkills(): Promise<Record<string, Comman
   return skillsToRecord(skills)
 }
 
+
+export async function loadAgentsGlobalSkills(): Promise<Record<string, CommandDefinition>> {
+  const agentsSkillsDir = join(homedir(), ".agents", "skills")
+  const skills = await loadSkillsFromDir(agentsSkillsDir, "agents")
+  return skillsToRecord(skills)
+}
+
 export interface DiscoverSkillsOptions {
   includeClaudeCodePaths?: boolean
 }
 
 export async function discoverAllSkills(): Promise<LoadedSkill[]> {
-  const [opencodeProjectSkills, projectSkills, opencodeGlobalSkills, userSkills] = await Promise.all([
+  const [opencodeProjectSkills, projectSkills, opencodeGlobalSkills, userSkills, agentsSkills] = await Promise.all([
     discoverOpencodeProjectSkills(),
     discoverProjectClaudeSkills(),
     discoverOpencodeGlobalSkills(),
     discoverUserClaudeSkills(),
+    discoverAgentsGlobalSkills(),
   ])
 
-  return [...opencodeProjectSkills, ...projectSkills, ...opencodeGlobalSkills, ...userSkills]
+  return [...opencodeProjectSkills, ...projectSkills, ...opencodeGlobalSkills, ...userSkills, ...agentsSkills]
 }
 
 export async function discoverSkills(options: DiscoverSkillsOptions = {}): Promise<LoadedSkill[]> {
   const { includeClaudeCodePaths = true } = options
-
-  const [opencodeProjectSkills, opencodeGlobalSkills] = await Promise.all([
+  const [opencodeProjectSkills, opencodeGlobalSkills, agentsSkills] = await Promise.all([
     discoverOpencodeProjectSkills(),
     discoverOpencodeGlobalSkills(),
+    discoverAgentsGlobalSkills(),
   ])
-
   if (!includeClaudeCodePaths) {
-    return [...opencodeProjectSkills, ...opencodeGlobalSkills]
+    return [...opencodeProjectSkills, ...opencodeGlobalSkills, ...agentsSkills]
   }
-
   const [projectSkills, userSkills] = await Promise.all([
     discoverProjectClaudeSkills(),
     discoverUserClaudeSkills(),
   ])
 
-  return [...opencodeProjectSkills, ...projectSkills, ...opencodeGlobalSkills, ...userSkills]
+  return [...opencodeProjectSkills, ...projectSkills, ...opencodeGlobalSkills, ...userSkills, ...agentsSkills]
 }
 
 export async function getSkillByName(name: string, options: DiscoverSkillsOptions = {}): Promise<LoadedSkill | undefined> {
@@ -258,4 +265,9 @@ export async function discoverOpencodeGlobalSkills(): Promise<LoadedSkill[]> {
 export async function discoverOpencodeProjectSkills(): Promise<LoadedSkill[]> {
   const opencodeProjectDir = join(process.cwd(), ".opencode", "skills")
   return loadSkillsFromDir(opencodeProjectDir, "opencode-project")
+}
+
+export async function discoverAgentsGlobalSkills(): Promise<LoadedSkill[]> {
+  const agentsSkillsDir = join(homedir(), ".agents", "skills")
+  return loadSkillsFromDir(agentsSkillsDir, "agents")
 }

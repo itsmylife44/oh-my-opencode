@@ -43,6 +43,7 @@ import {
   discoverProjectClaudeSkills,
   discoverOpencodeGlobalSkills,
   discoverOpencodeProjectSkills,
+  discoverAgentsGlobalSkills,
   mergeSkills,
 } from "./features/opencode-skill-loader";
 import { createBuiltinSkills } from "./features/builtin-skills";
@@ -255,11 +256,12 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
     return true;
   });
   const includeClaudeSkills = pluginConfig.claude_code?.skills !== false;
-  const [userSkills, globalSkills, projectSkills, opencodeProjectSkills] = await Promise.all([
+  const [userSkills, globalSkills, projectSkills, opencodeProjectSkills, agentsSkills] = await Promise.all([
     includeClaudeSkills ? discoverUserClaudeSkills() : Promise.resolve([]),
     discoverOpencodeGlobalSkills(),
     includeClaudeSkills ? discoverProjectClaudeSkills() : Promise.resolve([]),
     discoverOpencodeProjectSkills(),
+    discoverAgentsGlobalSkills(),
   ]);
   const mergedSkills = mergeSkills(
     builtinSkills,
@@ -267,7 +269,9 @@ const OhMyOpenCodePlugin: Plugin = async (ctx) => {
     userSkills,
     globalSkills,
     projectSkills,
-    opencodeProjectSkills
+    opencodeProjectSkills,
+    {},
+    agentsSkills
   );
   const skillMcpManager = new SkillMcpManager();
   const getSessionIDForMcp = () => getMainSessionID() || "";

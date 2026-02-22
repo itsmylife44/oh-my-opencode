@@ -133,7 +133,7 @@ function mergeAgentConfig(
 }
 
 function mapScopeToLocation(scope: SkillScope): AvailableSkill["location"] {
-  if (scope === "user" || scope === "opencode") return "user"
+	if (scope === "user" || scope === "opencode" || scope === "agents") return "user"
   if (scope === "project" || scope === "opencode-project") return "project"
   return "plugin"
 }
